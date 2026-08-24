@@ -18,30 +18,38 @@ npm run test     # testes com node --test (sem dependências extras)
 | --- | --- |
 | `←` / `→` | Frear / acelerar o cavalo (muda só a sua posição na pista) |
 | `↑` / `↓` | Trocar de faixa |
-| `Espaço` | 1º toque: bolear · 2º toque: lançar o laço |
+| `A` | Apertar repetidamente para bolear; o peso do laço define a quantidade |
+| `Espaço` | Arremessar quando o boleio estiver liberado |
+| `Ctrl` | Segurar para recolher o laço após uma tentativa errada |
 | `Esc` | Voltar ao menu |
 
 No menu: `↑`/`↓` navegam, `Enter` confirma. Há botões na tela para frear/acelerar em dispositivos touch.
 
 ## Regras da armada
 
-- O boi entra pela esquerda e acelera até velocidade de cruzeiro; a câmera acompanha o cavalo.
-- A laçada só é elegível se: distância horizontal mínima de 34 px, dentro do alcance do laço e diferença de faixa de até 20 px.
-- Dentro do alcance, cada laçada tem **50% de chance** de captura; fora dele, erra sempre.
-- A armada termina quando o boi sai da tela ou logo após uma captura. Tentativas e acertos da armada alimentam o placar total do campeonato, que persiste entre armadas.
+- O boi entra pela esquerda e acelera até sua velocidade de cruzeiro reduzida; a câmera e o cenário mantêm o ritmo original.
+- A laçada só é elegível se o boi estiver à frente e a distância diagonal até ele couber no alcance do laço. A diferença de faixa já entra nesse cálculo, sem um corte vertical separado.
+- A mira elíptica varre principalmente de um lado para o outro e pulsa durante o boleio. A elipse mantém seus eixos fixos; apenas o pequeno nó percorre o contorno na mesma velocidade de giro do laço do cowboy, simulando o movimento da corda sem girar a área de acerto. O contorno externo tem o dobro das dimensões da área útil, indicada pela elipse central; somente essa região interna garante a captura. A cor acompanha continuamente a chance real: **vermelho** indica 0%, tons intermediários passam por laranja e amarelo, e **verde** indica 100%. O nível do laço aumenta a área útil. Essa região garantida recebeu uma redução adicional de 20% e sua altura foi reduzida em mais 20%, deixando a mira menor e mais deitada. A tela Configurações oferece cinco níveis de tolerância persistentes, de difícil a fácil. Cavalos mais estáveis movem a mira mais devagar e por uma área menor.
+- Depois de uma captura, o cowboy acompanha automaticamente a velocidade do gado e mantém a distância até o fim da tela; acelerar e frear não alteram esse ritmo pós-acerto.
+- Ao errar, inclusive por falta de alcance do laço equipado, o aro cai na pista e pode ser recolhido com `Ctrl`. Se o gado chegar ao fim da tela, o recolhimento começa automaticamente na mesma velocidade normal antes da modal.
+- A armada e a modal de resultado só terminam quando o boi sai da tela, inclusive depois de uma captura. Tentativas e acertos da armada alimentam o placar total do campeonato, que persiste entre armadas.
 
 ## Equipamentos
 
 Escolha cavalo e laço na tela **Equipamentos** (a escolha fica salva no navegador):
 
-| Laço | Corda | Alcance |
-| --- | --- | --- |
-| Brasa | 10 m | 80 px |
-| Campestre | 12 m | 96 px |
-| Sereno | 15 m | 120 px |
-| Ouro Velho | 18 m | 144 px |
+| Laço | Nível da mira | Corda | Peso | Alcance | Preço |
+| --- | --- | --- | --- | --- | --- |
+| Campestre | 1 | 12 m | 4,8 kg | 96 px | Inicial |
+| Brasa | 2 | 10 m | 4,0 kg | 80 px | R$ 450 |
+| Raizeiro | 3 | 14 m | 3,2 kg | 112 px | R$ 900 |
+| Sereno | 4 | 15 m | 2,4 kg | 120 px | R$ 1.500 |
+| Horizonte | 5 | 17 m | 2,0 kg | 136 px | R$ 2.400 |
+| Ouro Velho | 6 | 18 m | 1,6 kg | 144 px | R$ 3.600 |
 
-Os cavalos (Faísca, Trovão, Areia e Lua Clara) diferem apenas na aparência.
+A stamina agora pertence ao cowboy e é calculada pelo nível dele, mantido fixo em **NV.1** nesta versão. O peso do laço define o esforço de boleio, mas a quantidade de apertos fica oculta. Cada `A` acelera o giro, amplia a mira e preenche a barra pixelada sobre o cowboy; quando ela fica completa, `Espaço` lança. A loja já registra compras e equipamentos no navegador; nesta versão, o saldo é infinito.
+
+Os seis cavalos têm notas de 1 a 5 estrelas. **Velocidade** melhora igualmente a resposta ao acelerar e ao frear; **estabilidade** reduz a oscilação aleatória da mira ao redor dos chifres. Durante a aceleração, a estabilidade efetiva cai suavemente em dois níveis sem alterar as estrelas exibidas; os níveis ocultos 0 e −1 atendem aos cavalos que já estão no mínimo. O Imperial é o melhor animal, com 5 estrelas nos dois atributos.
 
 ## Documentação
 

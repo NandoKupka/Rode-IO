@@ -11,7 +11,7 @@ function createTarget() {
   };
 }
 
-test('queues each quick space press for exactly one game frame', () => {
+test('queues each quick space press as a throw for exactly one game frame', () => {
   const target = createTarget();
   const input = createInput(target);
   const event = { code: 'Space', key: ' ', repeat: false, preventDefault() {} };
@@ -55,6 +55,38 @@ test('tracks the speed arrows and clears held controls on blur', () => {
   assert.equal(input.getState().right, false);
 });
 
+test('queues each A press as one boleio movement and ignores keyboard repeat', () => {
+  const target = createTarget();
+  const input = createInput(target);
+  const first = { code: 'KeyA', key: 'a', repeat: false, preventDefault() {} };
+  const repeated = { ...first, repeat: true };
+
+  target.listeners.get('keydown')(first);
+  target.listeners.get('keyup')(first);
+  assert.equal(input.getState().boleioPressed, true);
+  assert.equal(input.getState().boleioPressed, false);
+
+  target.listeners.get('keydown')(first);
+  target.listeners.get('keydown')(repeated);
+  assert.equal(input.getState().boleioPressed, true);
+  assert.equal(input.getState().boleioPressed, false);
+});
+
+test('holds control to reel a grounded lasso and clears it on blur', () => {
+  const target = createTarget();
+  const input = createInput(target);
+  const control = { code: 'ControlLeft', key: 'Control', preventDefault() {} };
+
+  target.listeners.get('keydown')(control);
+  assert.equal(input.getState().reel, true);
+  target.listeners.get('keyup')(control);
+  assert.equal(input.getState().reel, false);
+
+  target.listeners.get('keydown')(control);
+  target.listeners.get('blur')();
+  assert.equal(input.getState().reel, false);
+});
+
 test('queues a quick speed-control tap for the next game frame', () => {
   const target = createTarget();
   const input = createInput(target);
@@ -87,4 +119,17 @@ test('exposes speed controls for the on-screen buttons', () => {
   assert.equal(input.getState().right, true);
   input.setControl('right', false);
   assert.equal(input.getState().right, false);
+
+  input.setControl('reel', true);
+  assert.equal(input.getState().reel, true);
+  input.setControl('reel', false);
+  assert.equal(input.getState().reel, false);
+
+  input.setControl('boleio', true);
+  input.setControl('boleio', false);
+  assert.equal(input.getState().boleioPressed, true);
+
+  input.setControl('lasso', true);
+  input.setControl('lasso', false);
+  assert.equal(input.getState().lassoPressed, true);
 });

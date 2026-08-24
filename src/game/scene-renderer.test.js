@@ -49,6 +49,29 @@ function renderLassoLoopAt(progress) {
   return { x: loop[1], y: loop[2], radiusX: loop[3], radiusY: loop[4] };
 }
 
+function renderBoleioStartupAt(spinStartupElapsed) {
+  const ctx = createTraceContext();
+  createSceneRenderer(ctx).render({
+    cameraX: 0,
+    equipment: {},
+    cowboy: {
+      x: WORLD.cowboyX,
+      y: WORLD.cowboyBaseY,
+      frame: 0,
+      lassoAngle: 0,
+      lasso: { mode: 'spinning', progress: 0, spinStartupElapsed },
+    },
+    bull: { screenX: WORLD.bullX, y: 108, frame: 0 },
+  });
+  const loop = ctx.calls.find((call) => call[0] === 'ellipse' && call[3] >= 12);
+  const hand = ctx.calls.findLast((call) =>
+    call[0] === 'fillRect' && call[3] === 8 && call[4] === 8 && call[5] === PALETTE.skinLight,
+  );
+  assert.ok(loop);
+  assert.ok(hand);
+  return { loopRadius: loop[3], handY: hand[2] };
+}
+
 test('renders each audience section on the correct side of its fence', () => {
   const ctx = createTraceContext();
   createSceneRenderer(ctx).render({
@@ -156,9 +179,52 @@ test('renders the lasso coiled by the cowboy hand before bolearing', () => {
   });
 
   const handCoil = ctx.calls.find((call) =>
-    call[0] === 'ellipse' && call[2] < -40 && call[3] <= 15,
+    call[0] === 'ellipse' && call[2] > -35 && call[3] <= 15,
   );
-  assert.ok(handCoil, 'a small rope coil should remain visible next to the roping hand');
+  assert.ok(handCoil, 'a small rope coil should rest next to the lowered roping hand');
+});
+
+test('the first A quickly raises the arm and opens the lasso into its spinning pose', () => {
+  const start = renderBoleioStartupAt(0);
+  const raised = renderBoleioStartupAt(.18);
+
+  assert.ok(raised.handY < start.handY - 15, 'the roping hand should rise above the rider');
+  assert.ok(raised.loopRadius > start.loopRadius * 3, 'the compact loop should open into a full boleio');
+});
+
+test('draws a numberless boleio bar above the cowboy that fills with each A press', () => {
+  const renderProgress = (boleioPresses) => {
+    const ctx = createTraceContext();
+    createSceneRenderer(ctx).render({
+      cameraX: 0,
+      equipment: {},
+      cowboy: {
+        x: 50,
+        y: WORLD.cowboyBaseY,
+        frame: 0,
+        lassoAngle: 0,
+        lasso: {
+          mode: 'spinning',
+          progress: 0,
+          spinStartupElapsed: .18,
+          boleioPresses,
+          requiredBoleioPresses: 12,
+        },
+      },
+      bull: { screenX: WORLD.bullX, y: 108, frame: 0 },
+    });
+    return ctx.calls.findLast((call) =>
+      call[0] === 'fillRect' && call[2] === WORLD.cowboyBaseY - 30 &&
+      call[4] === 3 && call[5] === PALETTE.yellow,
+    );
+  };
+
+  const firstPress = renderProgress(1);
+  const complete = renderProgress(12);
+
+  assert.ok(firstPress, 'the bar should appear as soon as boleio starts');
+  assert.equal(firstPress[3], 3);
+  assert.equal(complete[3], 34);
 });
 
 test('visually limits a thrown loop to the equipped lasso reach', () => {

@@ -1,4 +1,4 @@
-import { ART_SCALE, PALETTE } from './theme.js';
+import { ART_SCALE, PALETTE, WORLD } from './theme.js';
 import { rect } from './draw-utils.js';
 
 export function drawSpectator(ctx, x, feetY, color, variant) {
@@ -42,6 +42,13 @@ function lerp(from, to, progress) {
   return from + (to - from) * progress;
 }
 
+function spinStartupProgress(lasso) {
+  if (lasso.mode !== 'spinning') return 1;
+  const duration = .18;
+  const progress = Math.min(Math.max((lasso.spinStartupElapsed ?? duration) / duration, 0), 1);
+  return 1 - (1 - progress) ** 3;
+}
+
 function spinningLoopPose(angle) {
   const orbitX = Math.cos(angle) * 7;
   const orbitY = Math.sin(angle) * 3;
@@ -75,7 +82,7 @@ function traceRopeTail(ctx, handX, handY, centerX, centerY, radiusX, radiusY, sl
 function groundLoopPose(lasso) {
   const scrape = Math.abs(Math.sin(lasso.dragTime * 11));
   return {
-    centerX: -lasso.dragDistance / ART_SCALE.cowboy,
+    centerX: (WORLD.lassoGroundLead - lasso.dragDistance) / ART_SCALE.cowboy,
     centerY: 28 - scrape * 4,
     radiusX: 38 + Math.sin(lasso.dragTime * 9) * 2,
     radiusY: 6 + scrape,
@@ -121,7 +128,18 @@ function drawLasso(ctx, angle, handX, handY, lasso, target, colors) {
     return;
   }
 
-  const start = spinningLoopPose(lasso.releaseAngle ?? angle);
+  let start = spinningLoopPose(lasso.releaseAngle ?? angle);
+  if (lasso.mode === 'spinning') {
+    const startup = spinStartupProgress(lasso);
+    start = {
+      centerX: lerp(handX + 11, start.centerX, startup),
+      centerY: lerp(handY + 10, start.centerY, startup),
+      radiusX: lerp(12, start.radiusX, startup),
+      radiusY: lerp(8, start.radiusY, startup),
+      tilt: lerp(.18, start.tilt, startup),
+      slack: lerp(4, 0, startup),
+    };
+  }
 
   if (lasso.mode === 'caught') {
     ctx.beginPath();
@@ -239,9 +257,17 @@ function throwExtension(lasso) {
 
 function getRopingHand(angle, bodyBob, lasso) {
   const extension = throwExtension(lasso);
-  return {
+  const active = {
     handX: 23 + Math.cos(angle) * 5 * (1 - extension) + extension * 18,
     handY: -57 + bodyBob + Math.sin(angle) * 3 * (1 - extension) + extension * 9,
+  };
+  const resting = { handX: 10, handY: -34 + bodyBob };
+  if (lasso.mode === 'ready') return resting;
+  if (lasso.mode !== 'spinning') return active;
+  const startup = spinStartupProgress(lasso);
+  return {
+    handX: lerp(resting.handX, active.handX, startup),
+    handY: lerp(resting.handY, active.handY, startup),
   };
 }
 
@@ -249,8 +275,11 @@ function drawRopingArm(ctx, angle, bodyBob, lasso, hand) {
   const shoulderX = 4;
   const shoulderY = -40 + bodyBob;
   const extension = throwExtension(lasso);
-  const elbowX = 15 + Math.cos(angle) * 2 * (1 - extension) + extension * 10;
-  const elbowY = -50 + bodyBob + Math.sin(angle) * 2 * (1 - extension) + extension * 7;
+  const activeElbowX = 15 + Math.cos(angle) * 2 * (1 - extension) + extension * 10;
+  const activeElbowY = -50 + bodyBob + Math.sin(angle) * 2 * (1 - extension) + extension * 7;
+  const startup = lasso.mode === 'ready' ? 0 : spinStartupProgress(lasso);
+  const elbowX = lerp(8, activeElbowX, startup);
+  const elbowY = lerp(-37 + bodyBob, activeElbowY, startup);
 
   ctx.beginPath();
   ctx.moveTo(shoulderX, shoulderY);

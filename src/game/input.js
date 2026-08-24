@@ -1,5 +1,15 @@
 export function createInput(target = window) {
-  const state = { up: false, down: false, left: false, right: false, lasso: false };
+  const state = {
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+    boleio: false,
+    lasso: false,
+    reel: false,
+  };
+  const heldControlKeys = new Set();
+  let boleioQueued = false;
   let lassoQueued = false;
   let upQueued = false;
   let downQueued = false;
@@ -13,6 +23,8 @@ export function createInput(target = window) {
       if (control === 'down') downQueued = true;
       if (control === 'left') leftQueued = true;
       if (control === 'right') rightQueued = true;
+      if (control === 'boleio') boleioQueued = true;
+      if (control === 'lasso') lassoQueued = true;
     }
     state[control] = isDown;
   }
@@ -22,11 +34,18 @@ export function createInput(target = window) {
     if (event.key === 'ArrowDown') setControl('down', isDown, event.repeat);
     if (event.key === 'ArrowLeft') setControl('left', isDown, event.repeat);
     if (event.key === 'ArrowRight') setControl('right', isDown, event.repeat);
-    if (event.code === 'Space' || event.key === ' ') {
-      state.lasso = isDown;
-      if (isDown && !event.repeat) lassoQueued = true;
+    if (event.code === 'KeyA' || event.key.toLowerCase() === 'a') {
+      setControl('boleio', isDown, event.repeat);
     }
-    if (event.key.startsWith('Arrow') || event.code === 'Space' || event.key === ' ') {
+    if (event.code === 'Space' || event.key === ' ') setControl('lasso', isDown, event.repeat);
+    if (event.key === 'Control') {
+      if (isDown) heldControlKeys.add(event.code);
+      else heldControlKeys.delete(event.code);
+      setControl('reel', heldControlKeys.size > 0, event.repeat);
+    }
+    if (event.key.startsWith('Arrow') || event.key === 'Control' ||
+        event.code === 'KeyA' || event.key.toLowerCase() === 'a' ||
+        event.code === 'Space' || event.key === ' ') {
       event.preventDefault();
     }
   }
@@ -38,7 +57,11 @@ export function createInput(target = window) {
     state.down = false;
     state.left = false;
     state.right = false;
+    state.boleio = false;
     state.lasso = false;
+    state.reel = false;
+    heldControlKeys.clear();
+    boleioQueued = false;
     lassoQueued = false;
     upQueued = false;
     downQueued = false;
@@ -54,12 +77,14 @@ export function createInput(target = window) {
     getState() {
       const snapshot = {
         ...state,
+        boleioPressed: boleioQueued,
         lassoPressed: lassoQueued,
         upPressed: upQueued,
         downPressed: downQueued,
         leftPressed: leftQueued,
         rightPressed: rightQueued,
       };
+      boleioQueued = false;
       lassoQueued = false;
       upQueued = false;
       downQueued = false;

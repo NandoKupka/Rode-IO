@@ -80,6 +80,20 @@ function drawCorridor(ctx, cameraX) {
   }
 }
 
+function drawBoleioProgress(ctx, cowboyX, cowboyY, lasso) {
+  if (lasso.mode !== 'spinning' || !lasso.requiredBoleioPresses) return;
+  const outerWidth = 38;
+  const innerWidth = 34;
+  const x = Math.min(Math.max(cowboyX - 14, 3), CANVAS.width - outerWidth - 3);
+  const y = cowboyY - 32;
+  const progress = Math.min(lasso.boleioPresses / lasso.requiredBoleioPresses, 1);
+
+  rect(ctx, x, y, outerWidth, 7, PALETTE.outline);
+  rect(ctx, x + 1, y + 1, outerWidth - 2, 5, PALETTE.cream);
+  rect(ctx, x + 2, y + 2, innerWidth, 3, PALETTE.blueDark);
+  rect(ctx, x + 2, y + 2, innerWidth * progress, 3, PALETTE.yellow);
+}
+
 export function createSceneRenderer(ctx) {
   return {
     render(state) {
@@ -92,6 +106,17 @@ export function createSceneRenderer(ctx) {
         x: bullX + 39 * ART_SCALE.bull,
         y: bullY - 31 * ART_SCALE.bull,
       };
+      const aim = state.aim ?? { offsetX: 0, offsetY: 0 };
+      const crosshair = {
+        x: horn.x + aim.offsetX,
+        y: horn.y + aim.offsetY,
+      };
+      const lassoTarget = lasso.releaseAimX === null || lasso.releaseAimX === undefined
+        ? crosshair
+        : {
+            x: horn.x + lasso.releaseAimX,
+            y: horn.y + lasso.releaseAimY,
+          };
       drawBackground(ctx, state.cameraX);
       drawCorridor(ctx, state.cameraX);
       drawUpperAudience(ctx, state.cameraX);
@@ -105,13 +130,14 @@ export function createSceneRenderer(ctx) {
         state.cowboy.frame,
         state.cowboy.lassoAngle,
         lasso,
-        horn,
+        lassoTarget,
         equipment,
       );
       drawBull(ctx, bullX, bullY, state.bull.frame);
       if (lasso.mode === 'caught') {
         drawCaughtLasso(ctx, horn.x, horn.y, equipment.lasso.colors);
       }
+      drawBoleioProgress(ctx, cowboyX, state.cowboy.y, lasso);
     },
   };
 }

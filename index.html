@@ -42,6 +42,7 @@
           <div class="screen-heading">
             <button class="back-button" type="button" data-go="menu">← VOLTAR</button>
             <h2 id="equipment-title">Equipamentos</h2>
+            <div class="wallet" aria-label="Saldo infinito"><span>SALDO</span><strong>R$ ∞</strong></div>
           </div>
 
           <div class="equipment-groups">
@@ -58,13 +59,26 @@
 
         <section class="screen settings-screen" data-screen="settings" aria-labelledby="settings-title" hidden>
           <button class="back-button" type="button" data-go="menu">← VOLTAR</button>
-          <div class="empty-panel">
+          <div class="empty-panel settings-panel">
             <h2 id="settings-title">Configurações</h2>
-            <p>EM BREVE</p>
+            <div class="setting-control">
+              <div class="setting-heading">
+                <label for="aim-tolerance">TOLERÂNCIA DA MIRA</label>
+                <output id="aim-tolerance-value" for="aim-tolerance">NORMAL</output>
+              </div>
+              <input id="aim-tolerance" type="range" min="1" max="5" step="1" value="3" aria-describedby="aim-tolerance-help" />
+              <div class="range-scale" aria-hidden="true"><span>DIFÍCIL</span><span>FÁCIL</span></div>
+              <p id="aim-tolerance-help">Aumenta a área de transição e a chance de acerto perto do centro.</p>
+            </div>
           </div>
         </section>
 
         <div class="game-ui" data-game-ui hidden>
+          <div class="aim-crosshair" id="aim-crosshair" data-status="red" aria-hidden="true"><i class="aim-ring"></i><i class="aim-core"></i><i class="aim-knot" id="aim-knot"></i></div>
+          <div class="stamina-meter" id="stamina-meter" hidden>
+            <div class="stamina-heading"><span>STAMINA GLOBAL · NV.1</span><strong id="lasso-weight">PESO 4,8KG</strong></div>
+          </div>
+
           <div class="instructions">
             <div>
               <p class="eyebrow">VELOCIDADE</p>
@@ -79,8 +93,16 @@
             <div>
               <p class="eyebrow">AÇÃO</p>
               <div class="control-row">
-                <kbd class="space-key" aria-hidden="true">ESPAÇO</kbd>
-                <p>bolear / lançar</p>
+                <button class="game-control-key" type="button" data-control="boleio" aria-label="Bolear o laço">A</button>
+                <p>apertar para bolear</p>
+              </div>
+              <div class="control-row secondary-control-row">
+                <button class="game-control-key control-key" type="button" data-control="lasso" aria-label="Arremessar o laço">ESPAÇO</button>
+                <p>arremessar liberado</p>
+              </div>
+              <div class="control-row secondary-control-row">
+                <button class="game-control-key control-key" type="button" data-control="reel" aria-label="Recolher o laço">CTRL</button>
+                <p>recolher após erro</p>
               </div>
             </div>
             <div>

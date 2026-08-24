@@ -21,8 +21,8 @@ input.getState() ──► updateGame(state, input, delta) ──► renderer.re
 | --- | --- |
 | `src/main.js` | Entry point: fiação de DOM, troca de telas, HUD, persistência de equipamento e game loop |
 | `src/game/state.js` | Simulação pura: criação/reset de estado e `updateGame()`; regras congeladas em `ROUND_RULES` |
-| `src/game/input.js` | Fábrica de listener de teclado headless com filas de edge-detection (`lassoPressed`, `leftPressed`…), consumidas uma vez por frame |
-| `src/game/equipment.js` | Catálogo congelado de 4 cavalos e 4 laços + `resolveLoadout()` com fallback para IDs inválidos |
+| `src/game/input.js` | Fábrica de listener de teclado headless com filas de edge-detection (`boleioPressed`, `lassoPressed`, `leftPressed`…), consumidas uma vez por frame |
+| `src/game/equipment.js` | Catálogo congelado de 6 cavalos e 6 laços, peso, stamina global, preços, compra e `resolveLoadout()` com fallback para IDs inválidos |
 | `src/game/theme.js` | Constantes congeladas: canvas, geometria do mundo (`WORLD`), escalas de arte, paleta de 22 cores |
 | `src/game/scene-renderer.js` | `createSceneRenderer(ctx).render(state)`: céu/nuvens/montanhas em parallax, pista, cercas, plateia procedural e sprites em ordem de pintura |
 | `src/game/pixel-art.js` | Desenho dos sprites: cavaleiro com galope de 4 quadros, braço articulado, física do laço (giro/lançamento/queda/arrasto), boi e plateia — tudo com `rect()` arredondados e curvas de Bézier |
@@ -35,17 +35,20 @@ input.getState() ──► updateGame(state, input, delta) ──► renderer.re
 
 ## Simulação (`state.js`)
 
-- **Estado**: câmera, placar total, armada atual (número, tentativas, acertos, status), cowboy (posição, velocidade, faixa, animação, laço) e boi.
-- **Regras tunáveis**: todas em `ROUND_RULES` (velocidades, acelerações, tolerância de faixa, distância mínima de laçada, delays). Congelado em tempo de módulo.
+- **Estado**: câmera, placar total, armada atual (número, tentativas, acertos, status), cowboy (nível 1, stamina global, posição, velocidade, faixa, animação, laço) e boi.
+- **Regras tunáveis**: ficam em `ROUND_RULES` (velocidades, acelerações e delays) e `AIM_RULES` (geometria, movimento e tolerância da mira). Ambos são congelados em tempo de módulo.
 - **Máquina de estados do laço**:
   ```
-  ready ─espaço─► spinning ─espaço─► throwing ──► caught (50% dentro do alcance)
-                                        └──────► falling ──► ready
+  ready ─A─► spinning ─A até completar o peso─► liberado ─espaço─► throwing ──► caught
+                                                                            └──────► falling ──► dragging ──segura Ctrl──► reeling
+                                                               ▲                         │
+                                                               └──── solta Ctrl ─────────┤
+                                                                                         └──distância 0──► ready
   ```
-  A elegibilidade é avaliada no lançamento: distância horizontal ≥ 34 px, distância euclidiana ≤ alcance do laço e diferença de faixa ≤ 20 px. Fora do alcance, o dado nem é rolado.
+  Cada aperto de `A` soma um passo de boleio. A quantidade interna exigida é `ceil(peso × 2,5 / stamina do cowboy)`; no nível 1, a stamina vale 1, e a interface expõe somente o peso. O primeiro passo faz uma transição rápida do braço e do aro. O giro permanece muito lento até 70% do preparo e acelera com uma curva quadrática apenas na etapa final; em paralelo, os passos ampliam a elipse de mira de 8% até seu tamanho normal e preenchem uma barra sem números sobre o cowboy. A elegibilidade é avaliada no lançamento: o boi precisa estar à frente e a distância euclidiana, já incluindo a diferença vertical, precisa ser menor ou igual ao alcance do laço. Fora do alcance, o dado nem é rolado.
 - **Fim da armada**: boi sai da tela à direita ou `0,85 s` após captura; `resetRound()` avança o número e preserva o placar do campeonato por padrão.
 
-> Nota: os modos `dragging`/`reeling` existem no renderer e nos campos `dragDistance`/`dragTime`, mas a lógica nunca entra neles — mecânica cortada/reservada. Detalhes em [`analise.md`](analise.md).
+Após qualquer erro, inclusive fora do alcance do laço equipado, o aro permanece no chão. O avanço do cavaleiro aumenta `dragDistance`; segurar `Ctrl` entra em `reeling`, e soltar antes do recolhimento completo volta para `dragging`.
 
 ## Renderização
 
@@ -63,14 +66,14 @@ Os sprites são **procedurais**, não bitmaps: cada personagem é composto por r
 
 ## Testes
 
-Runner nativo do Node: `npm run test` → `node --test src/game/*.test.js` (27 testes).
+Runner nativo do Node: `npm run test` → `node --test src/game/*.test.js`.
 
 | Suite | Cobre |
 | --- | --- |
-| `state.test.js` | Regras: liberação do boi, cruzamento ~5 s, acelerar/frear mexe só o cowboy, fluxo bolear→lançar, captura→pontuação→fim de armada, alcance por laço, chance de exatamente 50% (zero rolagens fora do alcance), reset preservando placar |
+| `state.test.js` | Regras: liberação do boi, cruzamento ~5 s, acelerar/frear mexe só o cowboy, fluxo bolear→lançar, captura→pontuação→fim de armada, alcance por laço, acerto garantido dentro do alcance e reset preservando placar |
 | `scene-renderer.test.js` | Geometria visual com contexto fake que grava chamadas: ordem de camadas, arco balístico do laço, abertura da corda no ápice, arrasto da errada, alcance curto parando antes do boi |
 | `input.test.js` | Um toque = um frame na fila, auto-repeat ignorado, blur limpa teclas, botões programáticos |
-| `equipment.test.js` | Catálogo único, alcance = metros × 8, fallback de IDs inválidos |
+| `equipment.test.js` | Catálogo único, alcance = metros × 8, peso/apertos por stamina global, compra com saldo infinito e fallback de IDs inválidos |
 
 Padrões úteis ao escrever novos testes: passo fixo de `0,02 s` para avançar a simulação e RNG injetado determinístico.
 
