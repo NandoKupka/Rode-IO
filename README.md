@@ -10,7 +10,23 @@ npm run dev      # servidor de desenvolvimento (Vite)
 npm run build    # build de produção em dist/
 npm run preview  # serve o build localmente
 npm run test     # testes com node --test (sem dependências extras)
+npm run pages:dev # simula o Cloudflare Pages localmente
 ```
+
+## Deploy no Cloudflare Pages
+
+O repositório está configurado para publicar o build Vite de `dist/` no projeto
+Pages `rode-io`. O caminho recomendado é conectar o GitHub para receber deploys
+automáticos a cada push na branch `master`:
+
+1. Faça commit destes arquivos e envie a branch `master` para o GitHub.
+2. No painel da Cloudflare, abra **Workers & Pages > Create application > Pages > Import an existing Git repository**.
+3. Autorize o GitHub, selecione o repositório `NandoKupka/Rode-IO` e use `rode-io` como nome do projeto.
+4. Em **Production branch**, selecione `master`.
+5. Em **Build settings**, use `npm run build` como comando e `dist` como diretório de saída. Deixe o diretório raiz vazio.
+6. Se o painel mostrar a opção de versão do sistema de build, escolha **v3**. A versão do Node já está fixada pelo arquivo `.node-version` e não precisa ser cadastrada no painel.
+7. Não é necessário cadastrar variáveis de ambiente para a versão atual.
+8. Clique em **Save and Deploy**. Depois disso, cada push em `master` publica produção; outras branches e pull requests recebem URLs de preview.
 
 ## Controles
 
