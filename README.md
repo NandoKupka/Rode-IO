@@ -20,13 +20,34 @@ Pages `rode-io`. O caminho recomendado é conectar o GitHub para receber deploys
 automáticos a cada push na branch `master`:
 
 1. Faça commit destes arquivos e envie a branch `master` para o GitHub.
-2. No painel da Cloudflare, abra **Workers & Pages > Create application > Pages > Import an existing Git repository**.
+2. No painel da Cloudflare, abra **Workers & Pages > Create application > Pages > Connect to Git**. Não use a opção **Import a repository**, pois ela cria um Worker.
 3. Autorize o GitHub, selecione o repositório `NandoKupka/Rode-IO` e use `rode-io` como nome do projeto.
 4. Em **Production branch**, selecione `master`.
 5. Em **Build settings**, use `npm run build` como comando e `dist` como diretório de saída. Deixe o diretório raiz vazio.
 6. Se o painel mostrar a opção de versão do sistema de build, escolha **v3**. A versão do Node já está fixada pelo arquivo `.node-version` e não precisa ser cadastrada no painel.
 7. Não é necessário cadastrar variáveis de ambiente para a versão atual.
 8. Clique em **Save and Deploy**. Depois disso, cada push em `master` publica produção; outras branches e pull requests recebem URLs de preview.
+
+## Deploy no GitHub Pages
+
+O workflow [`deploy-pages.yml`](.github/workflows/deploy-pages.yml) faz o build com Vite e publica `dist/` automaticamente no GitHub Pages a cada push em `master`.
+
+Para ativar:
+
+1. Faça commit e push das alterações para `master`:
+
+   ```bash
+   git add .
+   git commit -m "Configure GitHub Pages deploy"
+   git push origin master
+   ```
+
+2. No GitHub, abra o repositório `NandoKupka/Rode-IO` e acesse **Settings > Pages**.
+3. Em **Build and deployment > Source**, selecione **GitHub Actions**.
+4. Abra a aba **Actions** e aguarde o workflow **Deploy to GitHub Pages** terminar.
+5. O endereço será `https://nandokupka.github.io/Rode-IO/`.
+
+Depois disso, cada novo push em `master` publica uma nova versão automaticamente. O comando local equivalente é `npm run build:pages`.
 
 ## Controles
 

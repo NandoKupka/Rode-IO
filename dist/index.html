@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17130f" />
+    <title>Rodeio 8-bit</title>
+    <script type="module" crossorigin src="./assets/index-alZyLqrO.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-yPGRcwhH.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="game-card" data-active-screen="menu" aria-label="Jogo 2D de rodeio">
+        <canvas id="game-canvas" width="320" height="180" tabindex="0" aria-label="Cancha de rodeio 8-bit"></canvas>
+        <div class="scene-shade" aria-hidden="true"></div>
+
+        <header class="topbar">
+          <button class="brand-mark brand-button" type="button" data-go="menu" aria-label="Voltar ao menu">R8</button>
+          <h1 id="section-title">Rodeio 8-bit</h1>
+          <div class="live-pill" id="status-pill"><i></i> MENU</div>
+        </header>
+
+        <section class="screen menu-screen is-active" data-screen="menu" aria-labelledby="menu-title">
+          <div class="title-lockup">
+            <p>CAMPEONATO DE LAÇO</p>
+            <h2 id="menu-title">RODEIO</h2>
+            <strong>8-BIT</strong>
+          </div>
+
+          <nav class="main-menu snes-window" aria-label="Menu principal">
+            <button class="menu-option" type="button" data-go="game">JOGAR</button>
+            <button class="menu-option" type="button" data-go="equipment">EQUIPAMENTOS</button>
+            <button class="menu-option" type="button" data-go="settings">CONFIGURAÇÕES</button>
+          </nav>
+
+          <div class="menu-loadout">
+            <span>CAVALO</span><strong id="menu-horse-name">FAÍSCA</strong>
+            <span>LAÇO</span><strong id="menu-lasso-name">CAMPESTRE</strong>
+          </div>
+          <p class="menu-hint">↑↓ SELECIONAR&nbsp;&nbsp; ENTER CONFIRMAR</p>
+        </section>
+
+        <section class="screen equipment-screen" data-screen="equipment" aria-labelledby="equipment-title" hidden>
+          <div class="screen-heading">
+            <button class="back-button" type="button" data-go="menu">← VOLTAR</button>
+            <h2 id="equipment-title">Equipamentos</h2>
+            <div class="wallet" aria-label="Saldo infinito"><span>SALDO</span><strong>R$ ∞</strong></div>
+          </div>
+
+          <div class="equipment-groups">
+            <fieldset class="equipment-group">
+              <legend>CAVALOS</legend>
+              <div class="equipment-grid" id="horse-options"></div>
+            </fieldset>
+            <fieldset class="equipment-group">
+              <legend>LAÇOS</legend>
+              <div class="equipment-grid" id="lasso-options"></div>
+            </fieldset>
+          </div>
+        </section>
+
+        <section class="screen settings-screen" data-screen="settings" aria-labelledby="settings-title" hidden>
+          <button class="back-button" type="button" data-go="menu">← VOLTAR</button>
+          <div class="empty-panel settings-panel">
+            <h2 id="settings-title">Configurações</h2>
+            <div class="setting-control">
+              <div class="setting-heading">
+                <label for="aim-tolerance">TOLERÂNCIA DA MIRA</label>
+                <output id="aim-tolerance-value" for="aim-tolerance">NORMAL</output>
+              </div>
+              <input id="aim-tolerance" type="range" min="1" max="5" step="1" value="3" aria-describedby="aim-tolerance-help" />
+              <div class="range-scale" aria-hidden="true"><span>DIFÍCIL</span><span>FÁCIL</span></div>
+              <p id="aim-tolerance-help">Aumenta a área de transição e a chance de acerto perto do centro.</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="game-ui" data-game-ui hidden>
+          <div class="aim-crosshair" id="aim-crosshair" data-status="red" aria-hidden="true"><i class="aim-ring"></i><i class="aim-core"></i><i class="aim-knot" id="aim-knot"></i></div>
+          <div class="stamina-meter" id="stamina-meter" hidden>
+            <div class="stamina-heading"><span>STAMINA GLOBAL · NV.1</span><strong id="lasso-weight">PESO 4,8KG</strong></div>
+          </div>
+
+          <div class="instructions">
+            <div>
+              <p class="eyebrow">VELOCIDADE</p>
+              <div class="control-row">
+                <div class="key-pair">
+                  <button class="game-control-key" type="button" data-control="left" aria-label="Frear o cowboy">←</button>
+                  <button class="game-control-key" type="button" data-control="right" aria-label="Acelerar o cowboy">→</button>
+                </div>
+                <p>frear / acelerar</p>
+              </div>
+            </div>
+            <div>
+              <p class="eyebrow">AÇÃO</p>
+              <div class="control-row">
+                <button class="game-control-key" type="button" data-control="boleio" aria-label="Bolear o laço">A</button>
+                <p>apertar para bolear</p>
+              </div>
+              <div class="control-row secondary-control-row">
+                <button class="game-control-key control-key" type="button" data-control="lasso" aria-label="Arremessar o laço">ESPAÇO</button>
+                <p>arremessar liberado</p>
+              </div>
+              <div class="control-row secondary-control-row">
+                <button class="game-control-key control-key" type="button" data-control="reel" aria-label="Recolher o laço">CTRL</button>
+                <p>recolher após erro</p>
+              </div>
+            </div>
+            <div>
+              <p class="eyebrow">FAIXA</p>
+              <div class="control-row">
+                <div class="key-pair">
+                  <button class="game-control-key" type="button" data-control="up" aria-label="Mover o cowboy para cima">↑</button>
+                  <button class="game-control-key" type="button" data-control="down" aria-label="Mover o cowboy para baixo">↓</button>
+                </div>
+                <p>subir / descer</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="telemetry" aria-live="polite">
+            <div><span class="telemetry-label">LAÇO</span><strong id="lasso-value">GIRANDO</strong></div>
+            <div><span class="telemetry-label">TENTATIVAS</span><strong id="attempts-value">0</strong></div>
+            <div><span class="telemetry-label">ACERTOS</span><strong id="hits-value">0</strong></div>
+            <div><span class="telemetry-label">VELOC.</span><strong><span id="speed-value">30</span> km/h</strong></div>
+            <div><span class="telemetry-label">ARMADA</span><strong id="round-value">01</strong></div>
+          </div>
+
+          <div class="floor-label"><span></span> CORREDOR / 01</div>
+
+          <section class="round-modal" data-round-modal role="dialog" aria-modal="true" aria-labelledby="round-result-title" hidden>
+            <div class="round-modal-panel snes-window">
+              <p class="round-kicker">RESULTADO DA ARMADA</p>
+              <h2 id="round-result-title">FIM DA ARMADA</h2>
+              <div class="round-stats">
+                <div><span>ACERTADAS</span><strong id="round-hits-value">0</strong></div>
+                <div><span>TENTATIVAS</span><strong id="round-attempts-value">0</strong></div>
+                <div><span>TOTAL</span><strong id="total-hits-value">0</strong></div>
+              </div>
+              <div class="round-actions">
+                <button type="button" data-next-round>PRÓXIMA ARMADA</button>
+                <button type="button" data-go="menu">VOLTAR PRO MENU</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+  </body>
+</html>
